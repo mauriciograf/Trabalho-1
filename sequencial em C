@@ -1,0 +1,89 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define BUFFER_SIZE 1024
+
+typedef struct {
+    char device[50];
+    float temperatura;
+    float umidade;
+    float luminosidade;
+    char data[50];
+    char tipo[50];
+} Registro;
+
+// Função para processar os dados do arquivo de entrada
+void processar_dados_sequencial(const char *arquivo_entrada, const char *arquivo_saida) {
+    printf("Processando de forma sequencial...\n");
+    clock_t start_time = clock();
+
+    FILE *entrada = fopen(arquivo_entrada, "r");
+    if (!entrada) {
+        perror("Erro ao abrir o arquivo de entrada");
+        return;
+    }
+
+    FILE *saida = fopen(arquivo_saida, "w");
+    if (!saida) {
+        perror("Erro ao abrir o arquivo de saída");
+        fclose(entrada);
+        return;
+    }
+
+    // Escreve cabeçalho no arquivo de saída
+    fprintf(saida, "device|temperatura|umidade|luminosidade|data|tipo\n");
+
+    char linha[BUFFER_SIZE];
+    fgets(linha, BUFFER_SIZE, entrada); // Ignora o cabeçalho do arquivo de entrada
+
+    // Processa cada linha do arquivo
+    while (fgets(linha, BUFFER_SIZE, entrada)) {
+        Registro reg;
+        char *token = strtok(linha, "|");
+
+        // Extrai os campos
+        strcpy(reg.device, token);
+        reg.temperatura = atof(strtok(NULL, "|"));
+        reg.umidade = atof(strtok(NULL, "|"));
+        reg.luminosidade = atof(strtok(NULL, "|"));
+        strcpy(reg.data, strtok(NULL, "|"));
+        reg.data[strcspn(reg.data, "\n")] = '\0'; // Remove o caractere de nova linha
+
+        // Filtro de condições
+        if (reg.temperatura > 40) {
+            strcpy(reg.tipo, "temperatura > 40");
+        } else if (reg.temperatura < 0) {
+            strcpy(reg.tipo, "temperatura < 0");
+        } else if (reg.umidade < 0) {
+            strcpy(reg.tipo, "umidade < 0%");
+        } else if (reg.umidade > 100) {
+            strcpy(reg.tipo, "umidade > 100%");
+        } else if (reg.luminosidade < 0) {
+            strcpy(reg.tipo, "luminosidade < 0 lux");
+        } else {
+            continue; // Ignora registros que não atendem aos filtros
+        }
+
+        // Escreve o registro filtrado no arquivo de saída
+        fprintf(saida, "%s|%.2f|%.2f|%.2f|%s|%s\n", reg.device, reg.temperatura,
+                reg.umidade, reg.luminosidade, reg.data, reg.tipo);
+    }
+
+    fclose(entrada);
+    fclose(saida);
+
+    clock_t end_time = clock();
+    double tempo_execucao = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    printf("Tempo de processamento sequencial: %.4f segundos\n", tempo_execucao);
+}
+
+int main() {
+    const char *arquivo_entrada = "devices_limpo.csv";
+    const char *arquivo_saida = "devices_limpo_saida.csv";
+
+    processar_dados_sequencial(arquivo_entrada, arquivo_saida);
+
+    return 0;
+}
