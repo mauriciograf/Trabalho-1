@@ -25,8 +25,7 @@ def limpar_registros_incompletos(arquivo_entrada, arquivo_saida):
 
 
 if __name__ == "__main__":
-    # Nome do arquivo de entrada e saída
-    # Substitua pelo caminho do seu arquivo
+    # Nome do arquivo de entrada
     arquivo_entrada = 'E:/UCS Trab/Sem 14 - Prog Conc, Par, Distrib/devices.csv'
     # Nome do arquivo de saída
     arquivo_saida = 'E:/UCS Trab/Sem 14 - Prog Conc, Par, Distrib/devices_limpo.csv'
